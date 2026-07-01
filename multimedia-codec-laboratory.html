@@ -1,0 +1,749 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no"
+    />
+    <title>M.C.LAB</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="bg-gradient"></div>
+    <canvas id="bg-canvas"></canvas>
+    <div id="crt-overlay"></div>
+    <div id="crt-vignette"></div>
+    <div id="toastwrap"></div>
+
+    <!-- BOOT SCREEN -->
+    <div id="boot-screen">
+      <div class="boot-logo">M.C.LAB</div>
+      <div class="boot-sub">MULTIMEDIA CODEC LABORATORY &middot;</div>
+      <div class="boot-console" id="bootConsole"></div>
+      <div class="boot-progress-wrap">
+        <div class="boot-progress-bar" id="bootBar"></div>
+      </div>
+      <div class="boot-progress-text" id="bootPct">INITIALIZING... 0%</div>
+      <div class="boot-skip" id="bootSkip">PRESS ANYWHERE TO CONTINUE</div>
+    </div>
+
+    <div id="desktop">
+      <!-- ===== IMAGE CODEC WINDOW ===== -->
+      <div
+        class="y2k-window"
+        id="win-image"
+        style="width: 100%; max-width: 380px"
+      >
+        <div class="win-titlebar">
+          <div class="win-title">
+            <span class="material-icons">image</span> Image Codec — JPEG / PNG /
+            BMP
+          </div>
+          <div class="win-controls">
+            <div class="win-btn btn-min" data-act="min">_</div>
+            <div class="win-btn btn-close" data-act="close">x</div>
+          </div>
+        </div>
+        <div class="win-body">
+          <div class="dropzone" id="dz-image">
+            <input
+              type="file"
+              id="file-image"
+              accept="image/jpeg,image/png,image/bmp"
+              hidden
+            />
+            <div class="dz-icon">
+              <span class="material-icons">file_upload</span>
+            </div>
+            <div class="dz-title">DRAG &amp; DROP IMAGE FILE</div>
+            <div class="dz-sub">or click to browse · JPEG / PNG / BMP</div>
+          </div>
+
+          <div class="section-label">Algoritma</div>
+          <select id="img-algo">
+            <option value="rle">Run-Length Encoding (Lossless)</option>
+            <option value="huffman">Huffman Coding (Entropy Estimate)</option>
+            <option value="jpeg">
+              JPEG Compression (Browser Codec, Lossy)
+            </option>
+          </select>
+          <div class="btn-row">
+            <button
+              class="btn btn-primary btn-block"
+              id="img-compress"
+              disabled
+            >
+              <span class="material-icons">flash_on</span> COMPRESS
+            </button>
+            <button class="btn btn-block" id="img-decompress" disabled>
+              <span class="material-icons">unarchive</span> DECOMPRESS
+            </button>
+          </div>
+
+          <div class="progress-wrap" id="img-progwrap" style="display: none">
+            <div class="progress-bar" id="img-progbar"></div>
+          </div>
+          <div class="progress-label" id="img-proglabel" style="display: none">
+            <span>ENCODING…</span><span id="img-progpct">0%</span>
+          </div>
+
+          <div class="preview-row" id="img-previewrow" style="display: none">
+            <div class="preview-box">
+              <canvas id="img-canvas-before"></canvas>
+              <div class="pb-label">Original</div>
+            </div>
+            <div class="preview-box">
+              <canvas id="img-canvas-after"></canvas>
+              <div class="pb-label">Reconstructed</div>
+            </div>
+          </div>
+
+          <div class="stat-grid" id="img-stats" style="display: none">
+            <div class="stat-card">
+              <div class="lbl">Ukuran Asli</div>
+              <div class="val" id="img-stat-orig">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="lbl">Ukuran Terkompresi</div>
+              <div class="val purple" id="img-stat-comp">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="lbl">Compression Ratio</div>
+              <div class="val pink" id="img-stat-ratio">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="lbl">Waktu Proses</div>
+              <div class="val green" id="img-stat-time">—</div>
+            </div>
+          </div>
+          <div class="chart-box" id="img-chartbox" style="display: none">
+            <canvas id="img-chart"></canvas>
+          </div>
+          <div class="hint" id="img-hint">
+            Upload gambar untuk mulai analisis kompresi. RLE &amp; Huffman
+            dihitung langsung dari piksel asli; mode JPEG memakai encoder
+            browser asli (lossy, kualitas dapat diatur).
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== AUDIO CODEC WINDOW ===== -->
+      <div
+        class="y2k-window"
+        id="win-audio"
+        style="width: 100%; max-width: 380px"
+      >
+        <div class="win-titlebar">
+          <div class="win-title">
+            <span class="material-icons">headset</span> Audio Codec — MP3 / WAV
+          </div>
+          <div class="win-controls">
+            <div class="win-btn btn-min" data-act="min">_</div>
+            <div class="win-btn btn-close" data-act="close">x</div>
+          </div>
+        </div>
+        <div class="win-body">
+          <div class="dropzone" id="dz-audio">
+            <input
+              type="file"
+              id="file-audio"
+              accept="audio/mpeg,audio/wav,audio/mp3,audio/*"
+              hidden
+            />
+            <div class="dz-icon">
+              <span class="material-icons">file_upload</span>
+            </div>
+            <div class="dz-title">DRAG &amp; DROP AUDIO FILE</div>
+            <div class="dz-sub">or click to browse · MP3 / WAV</div>
+          </div>
+
+          <div class="section-label">Algoritma</div>
+          <select id="aud-algo">
+            <option value="dpcm">Differential PCM (DPCM)</option>
+            <option value="huffman">Huffman Coding (Entropy Estimate)</option>
+          </select>
+          <div class="btn-row">
+            <button
+              class="btn btn-primary btn-block"
+              id="aud-compress"
+              disabled
+            >
+              <span class="material-icons">flash_on</span> ANALYZE &amp;
+              COMPRESS
+            </button>
+            <button class="btn btn-block" id="aud-play" disabled>
+              <span class="material-icons">play_arrow</span> PLAY
+            </button>
+          </div>
+
+          <div class="progress-wrap" id="aud-progwrap" style="display: none">
+            <div class="progress-bar" id="aud-progbar"></div>
+          </div>
+          <div class="progress-label" id="aud-proglabel" style="display: none">
+            <span>ENCODING…</span><span id="aud-progpct">0%</span>
+          </div>
+
+          <div class="section-label" id="aud-wavelabel" style="display: none">
+            Waveform
+          </div>
+          <canvas
+            id="aud-waveform"
+            style="
+              display: none;
+              width: 100%;
+              height: 70px;
+              border: 1px solid rgba(0, 229, 255, 0.3);
+              border-radius: 8px;
+              background: rgba(0, 0, 0, 0.35);
+            "
+          ></canvas>
+
+          <div class="stat-grid" id="aud-stats" style="display: none">
+            <div class="stat-card">
+              <div class="lbl">Ukuran File</div>
+              <div class="val" id="aud-stat-orig">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="lbl">Estimasi Terkompresi</div>
+              <div class="val purple" id="aud-stat-comp">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="lbl">Compression Ratio</div>
+              <div class="val pink" id="aud-stat-ratio">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="lbl">Bitrate</div>
+              <div class="val green" id="aud-stat-bitrate">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="lbl">Durasi</div>
+              <div class="val" id="aud-stat-dur">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="lbl">Waktu Proses</div>
+              <div class="val" id="aud-stat-time">—</div>
+            </div>
+          </div>
+          <div class="hint" id="aud-hint">
+            Audio didekode via Web Audio API. Waveform &amp; delta antar-sampel
+            dihitung nyata dari data PCM untuk mengestimasi rasio DPCM/Huffman.
+          </div>
+          <audio id="aud-player" hidden></audio>
+        </div>
+      </div>
+
+      <!-- ===== VIDEO CODEC WINDOW ===== -->
+      <div
+        class="y2k-window"
+        id="win-video"
+        style="width: 100%; max-width: 380px"
+      >
+        <div class="win-titlebar">
+          <div class="win-title">
+            <span class="material-icons">videocam</span> Video Codec — MP4 / AVI
+          </div>
+          <div class="win-controls">
+            <div class="win-btn btn-min" data-act="min">_</div>
+            <div class="win-btn btn-close" data-act="close">x</div>
+          </div>
+        </div>
+        <div class="win-body">
+          <div class="dropzone" id="dz-video">
+            <input
+              type="file"
+              id="file-video"
+              accept="video/mp4,video/avi,video/*"
+              hidden
+            />
+            <div class="dz-icon">
+              <span class="material-icons">file_upload</span>
+            </div>
+            <div class="dz-title">DRAG &amp; DROP VIDEO FILE</div>
+            <div class="dz-sub">or click to browse · MP4 / AVI</div>
+          </div>
+
+          <div class="section-label">Algoritma</div>
+          <select id="vid-algo">
+            <option value="framediff">Frame Differencing</option>
+            <option value="motioncomp">Motion Compensation (estimasi)</option>
+          </select>
+          <button
+            class="btn btn-primary btn-block"
+            id="vid-compress"
+            disabled
+            style="margin-top: 10px"
+          >
+            <span class="material-icons">flash_on</span> ANALYZE FRAMES
+          </button>
+
+          <div class="progress-wrap" id="vid-progwrap" style="display: none">
+            <div class="progress-bar" id="vid-progbar"></div>
+          </div>
+          <div class="progress-label" id="vid-proglabel" style="display: none">
+            <span>ANALYZING FRAMES…</span><span id="vid-progpct">0%</span>
+          </div>
+
+          <div class="preview-row" id="vid-previewrow" style="display: none">
+            <div class="preview-box">
+              <canvas id="vid-canvas-a"></canvas>
+              <div class="pb-label">Frame A</div>
+            </div>
+            <div class="preview-box">
+              <canvas id="vid-canvas-b"></canvas>
+              <div class="pb-label">Frame B</div>
+            </div>
+            <div class="preview-box">
+              <canvas id="vid-canvas-diff"></canvas>
+              <div class="pb-label">Motion Diff</div>
+            </div>
+          </div>
+
+          <div class="stat-grid" id="vid-stats" style="display: none">
+            <div class="stat-card">
+              <div class="lbl">Resolusi</div>
+              <div class="val" id="vid-stat-res">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="lbl">Durasi</div>
+              <div class="val" id="vid-stat-dur">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="lbl">Motion Detected</div>
+              <div class="val pink" id="vid-stat-motion">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="lbl">Ukuran Asli</div>
+              <div class="val" id="vid-stat-orig">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="lbl">Estimasi Terkompresi</div>
+              <div class="val purple" id="vid-stat-comp">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="lbl">Compression Ratio</div>
+              <div class="val green" id="vid-stat-ratio">—</div>
+            </div>
+          </div>
+          <div class="hint" id="vid-hint">
+            Dua frame nyata ditangkap dari video lalu dibandingkan
+            piksel-demi-piksel (frame differencing asli) untuk mengukur
+            persentase gerakan. Rasio kompresi diturunkan dari hasil itu.
+            Pipeline motion-compensation penuh berjalan di backend Node.js pada
+            fase berikutnya.
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== STEGANOGRAPHY WINDOW ===== -->
+      <div
+        class="y2k-window"
+        id="win-stego"
+        style="width: 100%; max-width: 380px"
+      >
+        <div class="win-titlebar">
+          <div class="win-title">
+            <span class="material-icons">lock</span> Stego Module — LSB Engine
+          </div>
+          <div class="win-controls">
+            <div class="win-btn btn-min" data-act="min">_</div>
+            <div class="win-btn btn-close" data-act="close">x</div>
+          </div>
+        </div>
+        <div class="win-body">
+          <div class="tabrow">
+            <div class="tabbtn active" data-tab="stego-image">IMAGE</div>
+            <div class="tabbtn" data-tab="stego-audio">AUDIO</div>
+            <div class="tabbtn" data-tab="stego-video">VIDEO</div>
+          </div>
+
+          <!-- IMAGE STEGO -->
+          <div class="tabpane active" id="stego-image">
+            <div class="dropzone" id="dz-stego-image" style="margin-top: 10px">
+              <input
+                type="file"
+                id="file-stego-image"
+                accept="image/png,image/bmp,image/jpeg"
+                hidden
+              />
+              <div class="dz-icon">
+                <span class="material-icons">image</span>
+              </div>
+              <div class="dz-title">DRAG &amp; DROP COVER IMAGE</div>
+              <div class="dz-sub">PNG disarankan (lossless)</div>
+            </div>
+            <div class="section-label">Pesan Rahasia</div>
+            <textarea
+              id="stego-img-msg"
+              placeholder="Ketik pesan untuk disisipkan…"
+            ></textarea>
+            <div class="btn-row">
+              <button
+                class="btn btn-primary btn-block"
+                id="stego-img-embed"
+                disabled
+              >
+                <span class="material-icons">lock</span> EMBED
+              </button>
+              <button class="btn btn-block" id="stego-img-extract" disabled>
+                <span class="material-icons">lock_open</span> EXTRACT
+              </button>
+            </div>
+            <div
+              class="preview-row"
+              id="stego-img-previewrow"
+              style="display: none"
+            >
+              <div class="preview-box">
+                <canvas id="stego-img-canvas-cover"></canvas>
+                <div class="pb-label">Cover</div>
+              </div>
+              <div class="preview-box">
+                <canvas id="stego-img-canvas-stego"></canvas>
+                <div class="pb-label">Stego Output</div>
+              </div>
+            </div>
+            <div id="stego-img-result" style="display: none">
+              <div class="section-label">Pesan Terekstrak</div>
+              <div
+                class="hint"
+                id="stego-img-extracted"
+                style="
+                  background: rgba(0, 229, 255, 0.08);
+                  padding: 8px;
+                  border-radius: 7px;
+                  border: 1px solid rgba(0, 229, 255, 0.3);
+                  font-family: var(--font-mono);
+                "
+              ></div>
+            </div>
+            <a
+              id="stego-img-download"
+              class="btn btn-block"
+              style="display: none; margin-top: 8px"
+              download="stego_output.png"
+              ><span class="material-icons">file_download</span> DOWNLOAD STEGO
+              IMAGE</a
+            >
+            <div class="hint">
+              Setiap bit pesan disisipkan ke LSB kanal warna (kapasitas ≈
+              lebar×tinggi×3 bit). Header 32-bit menyimpan panjang pesan agar
+              ekstraksi presisi.
+            </div>
+          </div>
+
+          <!-- AUDIO STEGO -->
+          <div class="tabpane" id="stego-audio">
+            <div class="dropzone" id="dz-stego-audio" style="margin-top: 10px">
+              <input
+                type="file"
+                id="file-stego-audio"
+                accept="audio/wav,audio/*"
+                hidden
+              />
+              <div class="dz-icon">
+                <span class="material-icons">audiotrack</span>
+              </div>
+              <div class="dz-title">DRAG &amp; DROP COVER AUDIO</div>
+              <div class="dz-sub">WAV disarankan (PCM lossless)</div>
+            </div>
+            <div class="section-label">Pesan Rahasia</div>
+            <textarea
+              id="stego-aud-msg"
+              placeholder="Ketik pesan untuk disisipkan…"
+            ></textarea>
+            <div class="btn-row">
+              <button
+                class="btn btn-primary btn-block"
+                id="stego-aud-embed"
+                disabled
+              >
+                <span class="material-icons">lock</span> EMBED
+              </button>
+              <button class="btn btn-block" id="stego-aud-extract" disabled>
+                <span class="material-icons">lock_open</span> EXTRACT
+              </button>
+            </div>
+            <div id="stego-aud-result" style="display: none">
+              <div class="section-label">Pesan Terekstrak</div>
+              <div
+                class="hint"
+                id="stego-aud-extracted"
+                style="
+                  background: rgba(0, 229, 255, 0.08);
+                  padding: 8px;
+                  border-radius: 7px;
+                  border: 1px solid rgba(0, 229, 255, 0.3);
+                  font-family: var(--font-mono);
+                "
+              ></div>
+            </div>
+            <audio
+              id="stego-aud-out-player"
+              controls
+              style="display: none; width: 100%; margin-top: 8px"
+            ></audio>
+            <a
+              id="stego-aud-download"
+              class="btn btn-block"
+              style="display: none; margin-top: 8px"
+              download="stego_output.wav"
+              ><span class="material-icons">file_download</span> DOWNLOAD STEGO
+              WAV</a
+            >
+            <div class="hint">
+              Bit pesan disisipkan ke LSB tiap sampel PCM 16-bit channel
+              pertama, lalu di-render ulang menjadi file WAV baru yang bisa
+              diputar &amp; diunduh.
+            </div>
+          </div>
+
+          <!-- VIDEO STEGO -->
+          <div class="tabpane" id="stego-video">
+            <div class="dropzone" id="dz-stego-video" style="margin-top: 10px">
+              <input
+                type="file"
+                id="file-stego-video"
+                accept="video/mp4,video/*"
+                hidden
+              />
+              <div class="dz-icon">
+                <span class="material-icons">videocam</span>
+              </div>
+              <div class="dz-title">DRAG &amp; DROP COVER VIDEO</div>
+              <div class="dz-sub">MP4 / AVI</div>
+            </div>
+            <div class="section-label">Pesan Rahasia</div>
+            <textarea
+              id="stego-vid-msg"
+              placeholder="Ketik pesan untuk disisipkan…"
+            ></textarea>
+            <div class="btn-row">
+              <button
+                class="btn btn-primary btn-block"
+                id="stego-vid-embed"
+                disabled
+              >
+                <span class="material-icons">lock</span> EMBED (frame pertama)
+              </button>
+            </div>
+            <div
+              class="preview-row"
+              id="stego-vid-previewrow"
+              style="display: none"
+            >
+              <div class="preview-box">
+                <canvas id="stego-vid-canvas"></canvas>
+                <div class="pb-label">Frame + LSB Payload</div>
+              </div>
+            </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== STATS DASHBOARD WINDOW ===== -->
+      <div
+        class="y2k-window"
+        id="win-stats"
+        style="width: 100%; max-width: 400px"
+      >
+        <div class="win-titlebar">
+          <div class="win-title">
+            <span class="material-icons">bar_chart</span> Stats Dashboard
+          </div>
+          <div class="win-controls">
+            <div class="win-btn btn-min" data-act="min">_</div>
+            <div class="win-btn btn-close" data-act="close">x</div>
+          </div>
+        </div>
+        <div class="win-body">
+          <div class="stat-grid">
+            <div class="stat-card">
+              <div class="lbl">Total Operasi</div>
+              <div class="val" id="dash-total">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="lbl">Rata-rata Ratio</div>
+              <div class="val purple" id="dash-avgratio">0.00x</div>
+            </div>
+            <div class="stat-card">
+              <div class="lbl">Total Byte Dihemat</div>
+              <div class="val pink" id="dash-saved">0 B</div>
+            </div>
+            <div class="stat-card">
+              <div class="lbl">Rata-rata Waktu</div>
+              <div class="val green" id="dash-avgtime">0 ms</div>
+            </div>
+          </div>
+          <div class="section-label">Compression Ratio per Operasi</div>
+          <div class="chart-box"><canvas id="chart-ratio"></canvas></div>
+          <div class="section-label">Ukuran Sebelum vs Sesudah</div>
+          <div class="chart-box"><canvas id="chart-size"></canvas></div>
+          <div class="section-label">Log Sesi</div>
+          <div
+            id="dash-log"
+            style="
+              max-height: 140px;
+              overflow-y: auto;
+              font-family: var(--font-mono);
+              font-size: 10px;
+              line-height: 1.7;
+              color: rgba(220, 225, 255, 0.75);
+            "
+          ></div>
+          <div class="hint">
+            Dashboard memperbarui diri secara real-time setiap proses
+            kompresi/dekompresi pada modul gambar, audio, atau video selesai.
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PLAYER ===== -->
+      <div id="mediaplayer">
+        <div class="mp-head">
+          <div class="mp-title">◢◤ M.C.PLAYER ◢◤</div>
+          <div class="mp-headbtns">
+            <div
+              class="win-btn btn-min"
+              data-shade="1"
+              style="width: 14px; height: 14px"
+            >
+              ▬
+            </div>
+          </div>
+        </div>
+        <div class="mp-body">
+          <div class="mp-lcd">
+            <span class="marquee" id="mp-tracktitle"
+              >NO_SIGNAL.WAV — LOAD A TRACK TO BEGIN PLAYBACK —</span
+            ><span class="mp-time" id="mp-time">00:00 / 00:00</span>
+          </div>
+          <canvas class="mp-viz" id="mp-viz"></canvas>
+          <input
+            type="range"
+            class="mp-seek"
+            id="mp-seek"
+            min="0"
+            max="100"
+            value="0"
+          />
+          <div class="mp-controls">
+            <div class="mp-cbtn" id="mp-play">
+              <span class="material-icons">play_arrow</span>
+            </div>
+            <div class="mp-cbtn" id="mp-stop">
+              <span class="material-icons">stop</span>
+            </div>
+            <label class="mp-cbtn mp-filebtn" for="mp-filein" title="Load track"
+              ><span class="material-icons">folder_open</span></label
+            >
+            <input type="file" id="mp-filein" accept="audio/*" hidden />
+            <span
+              style="
+                font-size: 9px;
+                color: rgba(220, 225, 255, 0.5);
+                font-family: var(--font-mono);
+                margin-left: auto;
+              "
+              >EQ:ON</span
+            >
+          </div>
+          <div class="mp-vol">
+            <span class="material-icons">volume_up</span
+            ><input type="range" id="mp-volume" min="0" max="100" value="80" />
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== WEBCAM WIDGET ===== -->
+      <div id="webcamwidget">
+        <div class="cam-head">
+          <div class="cam-title">
+            <span class="material-icons">camera_alt</span> CAMVIEW.SYS
+          </div>
+          <div class="cam-rec" id="cam-recind" style="visibility: hidden">
+            <span class="dotrec"></span>REC
+          </div>
+        </div>
+        <div class="cam-screen" id="cam-screen">
+          <canvas class="cam-static" id="cam-static"></canvas>
+          <video
+            id="cam-video"
+            autoplay
+            playsinline
+            style="display: none"
+          ></video>
+          <div class="cam-frame-overlay"></div>
+          <div class="cam-ts" id="cam-ts" style="display: none"></div>
+          <div class="cam-placeholder" id="cam-placeholder">
+            [ NO SIGNAL ]<br />CLICK CONNECT TO ACTIVATE FEED
+          </div>
+        </div>
+        <div class="cam-foot">
+          <button class="btn btn-primary btn-sm btn-block" id="cam-connect">
+            <span class="material-icons">videocam</span> CONNECT
+          </button>
+          <button
+            class="btn btn-sm btn-block"
+            id="cam-stop"
+            style="display: none"
+          >
+            <span class="material-icons">stop</span> STOP
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- /#desktop -->
+
+    <!-- BOTTOM TASKBAR -->
+    <div id="taskbar">
+      <div class="tb-start" id="tb-start" role="button" tabindex="0">
+        <span class="material-icons">apps</span>
+        <span>START</span>
+      </div>
+      <div class="start-menu" id="start-menu" aria-hidden="true">
+        <button class="start-menu-item" data-open="win-image">
+          <span class="material-icons">image</span> Image Codec
+        </button>
+        <button class="start-menu-item" data-open="win-audio">
+          <span class="material-icons">headset</span> Audio Codec
+        </button>
+        <button class="start-menu-item" data-open="win-video">
+          <span class="material-icons">videocam</span> Video Codec
+        </button>
+        <button
+          class="start-menu-item start-menu-item--text"
+          data-open="win-stego"
+        >
+          Stego Module
+        </button>
+        <button class="start-menu-item" data-open="win-stats">
+          <span class="material-icons">bar_chart</span> Stats Dashboard
+        </button>
+        <button class="start-menu-item" data-open="mediaplayer">
+          <span class="material-icons">audio_library</span> M.C. Player
+        </button>
+        <button class="start-menu-item" data-open="webcamwidget">
+          <span class="material-icons">camera_alt</span> Cam View
+        </button>
+      </div>
+      <div id="tb-items"></div>
+      <div class="tb-spacer"></div>
+      <div class="tb-clock" id="tb-clock">00:00:00</div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
