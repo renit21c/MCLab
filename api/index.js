@@ -5,7 +5,6 @@ const path = require("path");
 
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
-const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use((req, res, next) => {
@@ -20,7 +19,8 @@ app.get("/health", (req, res) => {
   res.json(makeResponse({ status: "ok" }));
 });
 
-app.use(express.static(__dirname));
+// Serve static files from the root directory
+app.use(express.static(path.join(__dirname, '..')));
 
 function makeResponse(data, success = true) {
   return { success, ...data };
@@ -108,10 +108,6 @@ function encodeAudioBuffer(inputBuffer) {
   raw.copy(pcm8);
   return buildWavBuffer(pcm8, 8000, 1, 8);
 }
-
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "multimedia-codec-laboratory.html"));
-});
 
 app.post("/api/encode/image", upload.single("file"), async (req, res) => {
   try {
@@ -205,6 +201,4 @@ app.post("/api/encode/video", upload.single("file"), async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+module.exports = app;
