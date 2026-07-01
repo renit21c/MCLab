@@ -19,8 +19,7 @@ app.get("/health", (req, res) => {
   res.json(makeResponse({ status: "ok" }));
 });
 
-// Serve static files from the root directory
-app.use(express.static(path.join(__dirname, '..')));
+
 
 function makeResponse(data, success = true) {
   return { success, ...data };
