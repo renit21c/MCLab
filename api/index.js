@@ -15,11 +15,10 @@ app.use((req, res, next) => {
   if (req.method === "OPTIONS") return res.sendStatus(204);
   next();
 });
-app.get("/health", (req, res) => {
+
+app.get("/api/health", (req, res) => {
   res.json(makeResponse({ status: "ok" }));
 });
-
-
 
 function makeResponse(data, success = true) {
   return { success, ...data };
